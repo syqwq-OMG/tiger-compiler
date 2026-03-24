@@ -5,31 +5,37 @@
 namespace A {
 int A::CompoundStm::MaxArgs() const {
   // TODO: put your code here (lab1).
-
+  return std::max(stm1->MaxArgs(), stm2->MaxArgs());
 }
 
 Table *A::CompoundStm::Interp(Table *t) const {
   // TODO: put your code here (lab1).
+  return stm2->Interp(stm1->Interp(t));
 }
 
 int A::AssignStm::MaxArgs() const {
   // TODO: put your code here (lab1).
-
+  return exp->MaxArgs();
 }
 
 Table *A::AssignStm::Interp(Table *t) const {
   // TODO: put your code here (lab1).
-
+  IntAndTable *result = exp->InterpExp(t);
+  // 注意：不要用 t->Update()，因为 test_slp.cc 初始传入的是 nullptr，
+  // nullptr->Update 会导致段错误(Crash)。直接 new 一个 Table 更安全。
+  return new Table(id, result->i, result->t);
 }
 
 int A::PrintStm::MaxArgs() const {
   // TODO: put your code here (lab1).
-
+  return std::max(exps->NumExps(), exps->MaxArgs());
 }
 
 Table *A::PrintStm::Interp(Table *t) const {
   // TODO: put your code here (lab1).
-  
+  // 表达式列表的 Interp 会依次打印值，并返回最后一个值及最终的 Table 环境
+  IntAndTable *result = exps->Interp(t);
+  return result->t;
 }
 
 int IdExp::MaxArgs() const {

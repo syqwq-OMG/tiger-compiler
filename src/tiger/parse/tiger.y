@@ -42,7 +42,7 @@
  /* token priority */
  /* TODO: Put your lab3 code here */
 
-%type <exp> exp expseq
+%type <exp> exp expseq opexp ifexp whileexp callexp recordexp
 %type <explist> actuals nonemptyactuals sequencing sequencing_exps
 %type <var> lvalue one oneormore
 %type <declist> decs decs_nonempty

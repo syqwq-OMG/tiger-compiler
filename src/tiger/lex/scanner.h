@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 
+// $insert baseclass_h
 #include "scannerbase.h"
 #include "tiger/errormsg/errormsg.h"
 #include "tiger/parse/parserbase.h"

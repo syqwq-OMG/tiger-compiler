@@ -15,7 +15,7 @@ docker-run-backend:
 		-v $(shell pwd):/home/stu/tiger-compiler ipadsse302/tigerlabs_env:latest
 
 transform:
-	find src scripts testdata -type f | xargs -I % sh -c 'dos2unix -n % /tmp/tmp; mv -f /tmp/tmp % || true;'
+	echo "Transform skipped"
 
 build:transform
 	mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make

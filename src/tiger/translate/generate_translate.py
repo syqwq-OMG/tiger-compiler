@@ -1,4 +1,6 @@
-#include "tiger/translate/translate.h"
+import os
+
+content = """#include "tiger/translate/translate.h"
 
 #include <tiger/absyn/absyn.h>
 
@@ -86,7 +88,7 @@ public:
 
 class CxExp : public Exp {
 public:
-  mutable Cx cx_;
+  Cx cx_;
 
   CxExp(PatchList trues, PatchList falses, tree::Stm *stm)
       : cx_(trues, falses, stm) {}
@@ -162,7 +164,7 @@ tr::ExpAndTy *SimpleVar::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     while (curr_level != access->level_) {
       // Assuming static link is the first formal
       auto link_access = curr_level->frame_->Formals()->front();
-      frame_ptr = link_access->ToExp(frame_ptr);
+      frame_ptr = link_access->access_->ToExp(frame_ptr);
       curr_level = curr_level->parent_;
     }
     return new tr::ExpAndTy(new tr::ExExp(access->access_->ToExp(frame_ptr)), var_entry->ty_->ActualTy());
@@ -216,7 +218,7 @@ tr::ExpAndTy *SubscriptVar::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
   type::ArrayTy *array_ty = static_cast<type::ArrayTy *>(actual_var_ty);
   tree::Exp *addr = new tree::BinopExp(
       tree::PLUS_OP, var_ty->exp_->UnEx(),
-      new tree::BinopExp(tree::MUL_OP, sub_ty->exp_->UnEx(),
+      new tree::BinopExp(tree::TIMES_OP, sub_ty->exp_->UnEx(),
                          new tree::ConstExp(reg_manager->WordSize())));
   return new tr::ExpAndTy(new tr::ExExp(new tree::MemExp(addr)), array_ty->ty_->ActualTy());
 }
@@ -268,7 +270,7 @@ tr::ExpAndTy *CallExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     tr::Level *curr_level = level;
     while (curr_level != fun_entry->level_->parent_) {
       auto link_access = curr_level->frame_->Formals()->front();
-      static_link = link_access->ToExp(static_link);
+      static_link = link_access->access_->ToExp(static_link);
       curr_level = curr_level->parent_;
     }
     tree_args->Append(static_link);
@@ -315,8 +317,8 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     tree::BinOp op;
     if (oper_ == PLUS_OP) op = tree::PLUS_OP;
     else if (oper_ == MINUS_OP) op = tree::MINUS_OP;
-    else if (oper_ == TIMES_OP) op = tree::MUL_OP;
-    else op = tree::DIV_OP;
+    else if (oper_ == TIMES_OP) op = tree::TIMES_OP;
+    else op = tree::DIVIDE_OP;
     return new tr::ExpAndTy(new tr::ExExp(new tree::BinopExp(op, left_exp, right_exp)), type::IntTy::Instance());
   } else if (oper_ == EQ_OP || oper_ == NEQ_OP || oper_ == LT_OP || oper_ == LE_OP || oper_ == GT_OP || oper_ == GE_OP) {
     tree::CjumpStm *stm;
@@ -330,7 +332,7 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     } else {
       tree::RelOp op;
       if (oper_ == EQ_OP) op = tree::EQ_OP;
-      else if (oper_ == NEQ_OP) op = tree::NE_OP;
+      else if (oper_ == NEQ_OP) op = tree::NEQ_OP;
       else if (oper_ == LT_OP) op = tree::LT_OP;
       else if (oper_ == LE_OP) op = tree::LE_OP;
       else if (oper_ == GT_OP) op = tree::GT_OP;
@@ -762,3 +764,7 @@ type::Ty *ArrayTy::Translate(env::TEnvPtr tenv, err::ErrorMsg *errormsg) const {
 }
 
 } // namespace absyn
+"""
+
+with open("/home/syqwq/Workspace/tiger-compiler/src/tiger/translate/translate.cc", "w") as f:
+    f.write(content)

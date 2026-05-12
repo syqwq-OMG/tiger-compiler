@@ -78,7 +78,7 @@ public:
   explicit InFrameAccess(int offset) : offset(offset) {}
   /* TODO: Put your lab5 code here */
   tree::Exp *ToExp(tree::Exp *frame_ptr) const override {
-
+    return new tree::MemExp(new tree::BinopExp(tree::PLUS_OP, frame_ptr, new tree::ConstExp(offset)));
   }
   /* End for lab5 code */
 };
@@ -91,7 +91,7 @@ public:
   explicit InRegAccess(temp::Temp *reg) : reg(reg) {}
   /* TODO: Put your lab5 code here */
   tree::Exp *ToExp(tree::Exp *framePtr) const override {
-  
+    return new tree::TempExp(reg);
   }
   /* End for lab5 code */
 };
@@ -111,15 +111,62 @@ public:
   }
   frame::Access *AllocLocal(bool escape) override {
     /* TODO: Put your lab5 code here */
+    frame::Access *access;
+    if (escape) {
+      offset_ -= reg_manager->WordSize();
+      access = new InFrameAccess(offset_);
+    } else {
+      access = new InRegAccess(temp::TempFactory::NewTemp());
+    }
+    return access;
   }
   void AllocOutgoSpace(int size) override {
     /* TODO: Put your lab5 code here */
+    // Note: OutgoSpace handles maximum number of arguments passed on stack.
   }
   /* End for lab5 code */
 };
 
 frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals) {
   /* TODO: Put your lab5 code here */
+  auto access_list = new std::list<frame::Access *>();
+  X64Frame *frame = new X64Frame(name, access_list);
+  
+  tree::Stm *view_shift = nullptr;
+  temp::TempList *arg_regs = reg_manager->ArgRegs();
+  auto reg_it = arg_regs->GetList().begin();
+  int reg_count = 0;
+  int formal_offset = 0; // arguments starting offset relative to fp
+
+  for (bool escape : formals) {
+    frame::Access *access = frame->AllocLocal(escape);
+    access_list->push_back(access);
+
+    tree::Exp *dst = access->ToExp(new tree::TempExp(reg_manager->FramePointer()));
+    tree::Exp *src;
+
+    if (reg_count < 6) {
+      src = new tree::TempExp(*reg_it);
+      ++reg_it;
+      ++reg_count;
+    } else {
+      // Starting from 7th parameter (index 6), it is passed on the stack.
+      // offset is 16 for 7th argument, 24 for 8th, etc.
+      src = new tree::MemExp(new tree::BinopExp(
+          tree::PLUS_OP, new tree::TempExp(reg_manager->FramePointer()),
+          new tree::ConstExp(formal_offset + 16)));
+      formal_offset += reg_manager->WordSize();
+    }
+
+    if (view_shift) {
+      view_shift = new tree::SeqStm(view_shift, new tree::MoveStm(dst, src));
+    } else {
+      view_shift = new tree::MoveStm(dst, src);
+    }
+  }
+
+  frame->view_shift = view_shift;
+  return frame;
 }
 
 tree::Exp *ExternalCall(std::string_view s, tree::ExpList *args) {

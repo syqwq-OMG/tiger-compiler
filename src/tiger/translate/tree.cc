@@ -196,6 +196,7 @@ RelOp NotRel(RelOp r) {
     return ULE_OP;
   default:
     assert(false);
+    return EQ_OP;
   }
 }
 
@@ -223,6 +224,7 @@ RelOp Commute(RelOp r) {
     return ULT_OP;
   default:
     assert(false);
+    return EQ_OP;
   }
 }
 

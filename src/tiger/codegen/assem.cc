@@ -9,6 +9,7 @@ Temp *TempList::NthTemp(int i) const {
     if (i-- == 0)
       return it;
   assert(0);
+  return nullptr;
 }
 } // namespace temp
 

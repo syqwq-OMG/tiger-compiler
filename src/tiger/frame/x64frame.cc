@@ -1,4 +1,5 @@
 #include "tiger/frame/x64frame.h"
+#include "tiger/codegen/assem.h"
 
 extern frame::RegManager *reg_manager;
 
@@ -100,9 +101,10 @@ class X64Frame : public Frame {
   /* TODO: Put your lab5 code here */
 public:
   tree::Stm *view_shift;
+  int outgo_size_;
 
   X64Frame(temp::Label *name, std::list<frame::Access *> *formals)
-      : Frame(8, 0, name, formals), view_shift(nullptr) {}
+      : Frame(8, 0, name, formals), view_shift(nullptr), outgo_size_(0) {}
 
   [[nodiscard]] std::string GetLabel() const override { return name_->Name(); }
   [[nodiscard]] temp::Label *Name() const override { return name_; }
@@ -121,10 +123,10 @@ public:
     return access;
   }
   void AllocOutgoSpace(int size) override {
-    /* TODO: Put your lab5 code here */
-    // Note: OutgoSpace handles maximum number of arguments passed on stack.
+    if (size > outgo_size_) {
+      outgo_size_ = size;
+    }
   }
-  /* End for lab5 code */
 };
 
 frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals) {
@@ -151,10 +153,10 @@ frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals) {
       ++reg_count;
     } else {
       // Starting from 7th parameter (index 6), it is passed on the stack.
-      // offset is 16 for 7th argument, 24 for 8th, etc.
+      // offset is 8 for 7th argument, 16 for 8th, etc.
       src = new tree::MemExp(new tree::BinopExp(
           tree::PLUS_OP, new tree::TempExp(reg_manager->FramePointer()),
-          new tree::ConstExp(formal_offset + 16)));
+          new tree::ConstExp(formal_offset + 8)));
       formal_offset += reg_manager->WordSize();
     }
 
@@ -232,6 +234,37 @@ tree::Stm *ProcEntryExit1(frame::Frame *frame, tree::Stm *stm) {
   return exit_stm;
 }
 
+assem::InstrList *ProcEntryExit2(assem::InstrList *body) {
+  body->Append(new assem::OperInstr(
+      "", new temp::TempList(), reg_manager->ReturnSink(), nullptr));
+  return body;
+}
+
+assem::Proc *ProcEntryExit3(frame::Frame *frame, assem::InstrList *body) {
+  char buf[256];
+  std::string prolog;
+  std::string epilog;
+  std::string fn_name = frame->name_->Name();
+  
+  // Calculate framesize including outgo space
+  int frame_size = -frame->offset_;
+  auto x64_frame = dynamic_cast<X64Frame *>(frame);
+  if (x64_frame) {
+    frame_size += x64_frame->outgo_size_;
+  }
+
+  prolog.append(fn_name + ":\n");
+  sprintf(buf, ".set %s_framesize, %d\n", fn_name.data(), frame_size);
+  prolog.append(buf);
+  sprintf(buf, "subq $%d, %%rsp\n", frame_size);
+  prolog.append(buf);
+
+  sprintf(buf, "addq $%d, %%rsp\n", frame_size);
+  epilog.append(buf);
+  epilog.append("retq\n");
+
+  return new assem::Proc(prolog, body, epilog);
+}
 /* End for lab5 code */
 
 } // namespace frame

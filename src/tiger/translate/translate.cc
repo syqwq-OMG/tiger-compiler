@@ -318,6 +318,34 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     else if (oper_ == TIMES_OP) op = tree::MUL_OP;
     else op = tree::DIV_OP;
     return new tr::ExpAndTy(new tr::ExExp(new tree::BinopExp(op, left_exp, right_exp)), type::IntTy::Instance());
+  } else if (oper_ == AND_OP) {
+    tr::Cx left_cx = left_ty->exp_->UnCx(errormsg);
+    tr::Cx right_cx = right_ty->exp_->UnCx(errormsg);
+    temp::Label *z = temp::LabelFactory::NewLabel();
+    left_cx.trues_.DoPatch(z);
+    
+    tr::PatchList falses = tr::PatchList::JoinPatch(left_cx.falses_, right_cx.falses_);
+    tr::PatchList trues = right_cx.trues_;
+    
+    tree::Stm *stm = new tree::SeqStm(
+        left_cx.stm_,
+        new tree::SeqStm(new tree::LabelStm(z), right_cx.stm_));
+        
+    return new tr::ExpAndTy(new tr::CxExp(trues, falses, stm), type::IntTy::Instance());
+  } else if (oper_ == OR_OP) {
+    tr::Cx left_cx = left_ty->exp_->UnCx(errormsg);
+    tr::Cx right_cx = right_ty->exp_->UnCx(errormsg);
+    temp::Label *z = temp::LabelFactory::NewLabel();
+    left_cx.falses_.DoPatch(z);
+    
+    tr::PatchList trues = tr::PatchList::JoinPatch(left_cx.trues_, right_cx.trues_);
+    tr::PatchList falses = right_cx.falses_;
+    
+    tree::Stm *stm = new tree::SeqStm(
+        left_cx.stm_,
+        new tree::SeqStm(new tree::LabelStm(z), right_cx.stm_));
+        
+    return new tr::ExpAndTy(new tr::CxExp(trues, falses, stm), type::IntTy::Instance());
   } else if (oper_ == EQ_OP || oper_ == NEQ_OP || oper_ == LT_OP || oper_ == LE_OP || oper_ == GT_OP || oper_ == GE_OP) {
     tree::CjumpStm *stm;
     if (typeid(*(left_ty->ty_->ActualTy())) == typeid(type::StringTy)) {

@@ -8,6 +8,11 @@
 #include "tiger/frame/temp.h"
 #include "tiger/translate/tree.h"
 
+namespace assem {
+class Proc;
+class InstrList;
+} // namespace assem
+
 namespace frame {
 
 class RegManager {
@@ -101,7 +106,14 @@ public:
 
 class Frag {
 public:
+  enum OutputPhase {
+    Proc,
+    String,
+  };
+
   virtual ~Frag() = default;
+
+  virtual void OutputAssem(FILE *out, OutputPhase phase, bool need_ra) const = 0;
 };
 
 class StringFrag : public Frag {
@@ -111,6 +123,8 @@ public:
 
   StringFrag(temp::Label *label, std::string str)
       : label_(label), str_(std::move(str)) {}
+
+  void OutputAssem(FILE *out, OutputPhase phase, bool need_ra) const override;
 };
 
 class ProcFrag : public Frag {
@@ -119,6 +133,8 @@ public:
   Frame *frame_;
 
   ProcFrag(tree::Stm *body, Frame *frame) : body_(body), frame_(frame) {}
+
+  void OutputAssem(FILE *out, OutputPhase phase, bool need_ra) const override;
 };
 
 class Frags {
@@ -135,6 +151,8 @@ private:
 tree::Exp *ExternalCall(std::string_view s, tree::ExpList *args);
 frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals);
 tree::Stm *ProcEntryExit1(frame::Frame *frame, tree::Stm *stm);
+assem::InstrList *ProcEntryExit2(assem::InstrList *body);
+assem::Proc *ProcEntryExit3(frame::Frame *frame, assem::InstrList *body);
 /* End for lab5 code */
 
 } // namespace frame

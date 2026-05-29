@@ -1,0 +1,6 @@
+let
+  function f(a: int, b: int): int = a - b
+  function g(x: int): int = x + 1
+in
+  f(g(1), g(2))
+end

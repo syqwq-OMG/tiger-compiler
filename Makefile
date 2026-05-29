@@ -32,14 +32,14 @@ gradelab2:transform
 gradelab3:transform
 	bash scripts/grade.sh lab3
 
-gradelab4:transform
+gradelab4:
 	bash scripts/grade.sh lab4
 
 gradelab5-1:transform
 	bash scripts/grade.sh lab5-part1
 
-gradelab5:transform
-	bash scripts/grade.sh lab5
+gradelab5-2:transform
+	bash scripts/grade.sh lab5-part2
 
 gradelab6:transform
 	bash scripts/grade.sh lab6
@@ -63,24 +63,40 @@ ziplab3:
 
 ziplab4:
 	zip -j lab4-answer.zip \
-        src/tiger/parse/tiger.y \
-        src/tiger/lex/tiger.lex \
-        src/tiger/lex/scanner.h \
-        src/tiger/semant/semant.h \
-        src/tiger/semant/semant.cc
+    src/tiger/parse/tiger.y \
+    src/tiger/lex/tiger.lex \
+    src/tiger/lex/scanner.h \
+    src/tiger/semant/semant.h \
+    src/tiger/semant/semant.cc
 
 ziplab5-1:
-	zip -j lab5-1-answer.zip \
-        src/tiger/parse/tiger.y \
-        src/tiger/lex/tiger.lex \
-        src/tiger/lex/scanner.h \
-        src/tiger/semant/semant.h \
-        src/tiger/semant/semant.cc \
-        src/tiger/escape/escape.* \
-        src/tiger/frame/frame.h \
-        src/tiger/frame/temp.* \
-        src/tiger/frame/x64frame.* \
-        src/tiger/translate/translate.*
+	zip -j lab5_1-answer.zip \
+    src/tiger/parse/tiger.y \
+    src/tiger/lex/tiger.lex \
+    src/tiger/lex/scanner.h \
+    src/tiger/semant/semant.h \
+    src/tiger/semant/semant.cc \
+	src/tiger/escape/escape.* \
+	src/tiger/frame/frame.h \
+	src/tiger/frame/temp.* \
+	src/tiger/frame/x64frame.* \
+	src/tiger/translate/translate.* \
+
+ziplab5-2:
+	zip -j lab5_2-answer.zip \
+    src/tiger/parse/tiger.y \
+    src/tiger/lex/tiger.lex \
+    src/tiger/lex/scanner.h \
+    src/tiger/semant/semant.* \
+	src/tiger/escape/escape.* \
+	src/tiger/frame/frame.h \
+	src/tiger/frame/temp.* \
+	src/tiger/frame/x64frame.* \
+	src/tiger/translate/translate.* \
+	src/tiger/translate/tree.* \
+	src/tiger/canon/canon.* \
+	src/tiger/codegen/assem.* \
+	src/tiger/codegen/codegen.* \
 
 clean:
 	rm -rf build/ src/tiger/lex/scannerbase.h src/tiger/lex/lex.cc \
@@ -91,4 +107,3 @@ register:
 
 format:
 	find . \( -name "*.h" -o -iname "*.cc" \) | xargs clang-format -i -style=file
-

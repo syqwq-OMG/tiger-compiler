@@ -2,19 +2,31 @@ from type import *
 import re
 
 class Instruction(object):
+    """
+    Abstract base class for different types of assembly instructions.
+    """
+
     def __init__(self, kind):
         self._kind = kind
 
     def execute(self, state_table):
-        raise NotImplementedError("Invoke interface in abstract class:Instruction");
+        """
+        Abstract method to execute the instruction.
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError("Invoke interface in abstract class:Instruction")
 
     def print_kind(self):
+        """
+        Print the kind of the instruction.
+        """
         print(self._kind)
 
 
 class MovInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'MOV' instruction, which moves data from one operand to another.
+    """
 
     def __init__(self, kind, arg0, arg1):
         super(MovInstruction, self).__init__(kind)
@@ -39,8 +51,9 @@ class MovInstruction(Instruction):
         
 
 class AddInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'ADD' instruction, which adds two operands and stores the result.
+    """
 
     def __init__(self, kind, arg0, arg1):
         super(AddInstruction, self).__init__(kind)
@@ -54,21 +67,21 @@ class AddInstruction(Instruction):
         # Get value of second operand, it must be mem/register, and store result in it
         if re.match(OperandEnum.Reg.value, self._arg1):
             arg1_val = state_table.load_reg(self._arg1)
-            state_table.store_reg(self._arg1, arg0_val+arg1_val)
+            state_table.store_reg(self._arg1, arg0_val + arg1_val)
         elif re.match(OperandEnum.Imm.value, self._arg1):
             raise AssertionError("Should not use Imm as second operand")
         else:
             arg1_val = state_table.load_mem(self._arg1)
-            state_table.store_mem(self._arg1, arg0_val+arg1_val)
-
+            state_table.store_mem(self._arg1, arg0_val + arg1_val)
 
     def print_kind(self):
         print("Add Instruction")
 
 
 class SubInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'SUB' instruction, which subtracts one operand from another and stores the result.
+    """
 
     def __init__(self, kind, arg0, arg1):
         super(SubInstruction, self).__init__(kind)
@@ -82,21 +95,21 @@ class SubInstruction(Instruction):
         # Get value of second operand, it must be mem/register, and store result in it
         if re.match(OperandEnum.Reg.value, self._arg1):
             arg1_val = state_table.load_reg(self._arg1)
-            state_table.store_reg(self._arg1, arg1_val-arg0_val)
+            state_table.store_reg(self._arg1, arg1_val - arg0_val)
         elif re.match(OperandEnum.Imm.value, self._arg1):
             raise AssertionError("Should not use Imm as second operand")
         else:
             arg1_val = state_table.load_mem(self._arg1)
-            state_table.store_mem(self._arg1, arg1_val-arg0_val)
-
+            state_table.store_mem(self._arg1, arg1_val - arg0_val)
 
     def print_kind(self):
         print("Sub Instruction")
 
 
 class ImulInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'IMUL' instruction, which multiplies the RAX register with another operand and stores the result in RAX.
+    """
 
     def __init__(self, kind, arg0):
         super(ImulInstruction, self).__init__(kind)
@@ -118,8 +131,9 @@ class ImulInstruction(Instruction):
 
 
 class IdivInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'IDIV' instruction, which divides the RAX register by another operand and stores the quotient in RAX and the remainder in RDX.
+    """
 
     def __init__(self, kind, arg0):
         super(IdivInstruction, self).__init__(kind)
@@ -145,8 +159,9 @@ class IdivInstruction(Instruction):
 
 
 class LeaInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'LEA' instruction, which loads the effective address of the source operand into the destination register.
+    """
 
     def __init__(self, kind, arg0, arg1):
         super(LeaInstruction, self).__init__(kind)
@@ -168,8 +183,9 @@ class LeaInstruction(Instruction):
 
 
 class CallInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'CALL' instruction, which transfers control to a subroutine.
+    """
 
     def __init__(self, kind, label):
         super(CallInstruction, self).__init__(kind)
@@ -183,8 +199,9 @@ class CallInstruction(Instruction):
 
 
 class CmpInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'CMP' instruction, which compares two operands and sets the status flags in the state table.
+    """
 
     def __init__(self, kind, arg0, arg1):
         super(CmpInstruction, self).__init__(kind)
@@ -202,8 +219,9 @@ class CmpInstruction(Instruction):
 
 
 class JmpInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'JMP' instruction, which performs a conditional or unconditional jump to a specified label.
+    """
 
     def __init__(self, kind, condition, label):
         super(JmpInstruction, self).__init__(kind)
@@ -220,8 +238,9 @@ class JmpInstruction(Instruction):
 
 
 class RetInstruction(Instruction):
-    
-    # TODO(lz): Comment
+    """
+    Class representing the 'RET' instruction, which returns control from a subroutine to the calling procedure.
+    """
 
     def __init__(self, kind):
         super(RetInstruction, self).__init__(kind)
@@ -231,3 +250,4 @@ class RetInstruction(Instruction):
         
     def print_kind(self):
         print("Ret Instruction")
+        

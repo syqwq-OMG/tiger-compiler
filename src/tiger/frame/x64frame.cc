@@ -252,6 +252,10 @@ assem::Proc *ProcEntryExit3(frame::Frame *frame, assem::InstrList *body) {
   if (x64_frame) {
     frame_size += x64_frame->outgo_size_;
   }
+  
+  // Align stack pointer to 16 bytes for x64 ABI calling convention
+  // Upon entry, return address is pushed (8 bytes), so we need frame_size % 16 == 8
+  frame_size = ((frame_size + 7) / 16) * 16 + 8;
 
   prolog.append(fn_name + ":\n");
   sprintf(buf, ".set %s_framesize, %d\n", fn_name.data(), frame_size);
